@@ -3,14 +3,34 @@ from django.http import HttpResponse
 from .forms import UserForm
 from vendor.forms import VendorForm
 from .models import User, UserProfile
-from django.contrib import messages
+from django.contrib import messages, auth
 from django.template.defaultfilters import slugify
+from .utils import detectUser
+from django.contrib.auth.decorators import login_required, user_passes_test
 
-# Create your views here.
+from django.core.exceptions import PermissionDenied
+
+
+
+def check_role_vendor(user):
+    if user.role == 1:
+        return True
+    raise PermissionDenied
+
+
+def check_role_customer(user):
+    if user.role == 2:
+        return True
+    raise PermissionDenied
+
+
 def registerUser(request):
     context = dict()
     form = UserForm()
-    if request.method == 'POST':
+    if request.user.is_authenticated:
+        messages.warning(request, 'You are already logged in!')
+        return redirect('my-account')
+    elif request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
 
@@ -38,8 +58,10 @@ def registerVendor(request):
     context = dict()
     form = UserForm(request.POST or None)
     v_form = VendorForm(request.POST, request.FILES or None)
-
-    if request.method == 'POST':
+    if request.user.is_authenticated:
+        messages.warning(request, 'You are already logged in!')
+        return redirect('my-account')
+    elif request.method == 'POST':
         if form.is_valid() and v_form.is_valid():
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
@@ -65,3 +87,52 @@ def registerVendor(request):
     context['form'] = form
     context['v_form'] = v_form
     return render(request, 'accounts/register-vendor.html', context)
+
+
+def login(request):
+    if request.user.is_authenticated:
+        messages.warning(request, 'You are already logged in!')
+        return redirect('my-account')
+    elif request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+        print(email, password)
+        user = auth.authenticate(email=email, password=password)
+        print('user: ',user)
+        if user is not None:
+            print('test 1')
+            auth.login(request, user)
+            messages.success(request, 'You are now logged in.')
+            return redirect('my-account')
+        else:
+            print('test 2')
+            messages.error(request, 'Invalid login credentials')
+            return redirect('login')
+    return render(request, 'accounts/login.html')
+
+
+def logout(request):
+    auth.logout(request)
+    messages.info(request, 'You are logged out.')
+    return redirect('login')
+
+
+@login_required(login_url='login')
+def myAccount(request):
+    user = request.user
+    redirectUrl = detectUser(user)
+    return redirect(redirectUrl)
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_customer)
+def customerDashboard(request):
+    context = dict()
+    return render(request, 'accounts/customer-dashboard.html', context)
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def vendorDashboard(request):
+    context = dict()
+    return render(request, 'accounts/vendor-dashboard.html', context)

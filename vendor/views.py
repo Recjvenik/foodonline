@@ -1,3 +1,8 @@
 from django.shortcuts import render
+from .models import Vendor
 
-# Create your views here.
+def vendor_profile(request):
+    # context = dict()
+    # vendor = Vendor.objects.get(user=request.user)
+    # context['vendor'] = vendor
+    return render(request,'vendor/vendor_profile.html')

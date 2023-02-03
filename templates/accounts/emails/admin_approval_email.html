@@ -1,0 +1,11 @@
+{% autoescape off %}
+
+Hi {{user.first_name}},
+
+{% if is_approved %}
+Congretulations!!! Your resturant has been approved by our admin team --tiffinWala
+{% else %}
+We are sorry, you are not eligible for publishing your food menu on our marketplace. For more detal, please contact support@tiffinWala.com
+{% endif %}
+
+{% endautoescape %}

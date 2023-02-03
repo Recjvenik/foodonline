@@ -110,3 +110,7 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.email
+
+    @property
+    def full_address(self):
+        return f'{self.address}, {self.city}, {self.state}'

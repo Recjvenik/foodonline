@@ -54,3 +54,132 @@ function onPlaceChanged (){
         }
     }    
 }
+
+
+$(document).ready(function(){
+    $('.add_to_cart').on('click', function(e){
+        e.preventDefault()
+        food_id = $(this).attr('data-id')
+        url = $(this).attr('data-url')
+
+        data = {'food_id': food_id}
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            data: data,
+            success: function(response){
+                if(response.status == 'login_required'){
+                    swal(response.message, '', 'info').then(function(){
+                        window.location = '/login'
+                    });
+                }else if( response.status == 'Failed'){
+                    swal(response.message, '', 'error')
+                }else if(response.status=='Success'){
+                    $('#cart_counter').html(response.cart_counter['cart_count'])
+                    $('#qty-'+food_id).html(response.qty)
+
+                    // subtotal, tax and grand_total
+                    applyCartAmount(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['grand_total']
+                        )
+                }
+            }
+        })
+    })
+
+    $('.decrease_cart').on('click', function(e){
+        e.preventDefault()
+        food_id = $(this).attr('data-id')
+        url = $(this).attr('data-url')
+        cart_id = $(this).attr('data-cart-id')
+        data = {'food_id': food_id}
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            data: data,
+            success: function(response){
+                if(response.status == 'login_required'){
+                    swal(response.message, '', 'info').then(function(){
+                        window.location = '/login'
+                    });
+                }else if( response.status == 'Failed'){
+                    swal(response.message, '', 'error')
+                }else if(response.status=='Success'){
+                    $('#cart_counter').html(response.cart_counter['cart_count'])
+                    $('#qty-'+food_id).html(response.qty)
+                    applyCartAmount(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['grand_total']
+                        )
+                    if(window.location.pathname == '/market-place/food/cart/'){
+                        removeCartItem(response.qty,cart_id)
+                        checkEmptyCart()
+                    }
+                }
+            }
+        })
+    })
+
+
+    $('.item-qty').each(function(){
+        var the_id = $(this).attr('id')
+        var qty = $(this).attr('data-qty')
+        $('#' + the_id).html(qty)
+    })
+
+    // delete cart item
+
+    $('.delete_cart').on('click', function(e){
+        e.preventDefault()
+        cart_id = $(this).attr('data-id')
+        url = $(this).attr('data-url')
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response){
+                if( response.status == 'Failed'){
+                    swal(response.message, '', 'error')
+                }else if(response.status=='Success'){
+                    $('#cart_counter').html(response.cart_counter['cart_count'])
+                    applyCartAmount(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['grand_total']
+                        )
+                    removeCartItem(0, cart_id)
+                    checkEmptyCart()
+                }
+            }
+        })
+    })
+
+    // delete the cart element if the qty is zero
+    function removeCartItem(quantity, cart_id){
+        if(quantity <= 0){
+            document.getElementById("cart-item-"+cart_id).remove()
+        }
+    }
+
+    function checkEmptyCart(){
+        var cart_counter = document.getElementById("cart_counter")
+        if(cart_counter.innerHTML == '0'){
+            document.getElementById('empty-cart').style.display = "block"
+        }
+    }
+
+    // appy cart amount
+    function applyCartAmount(subtotal,tax,grand_total){
+        if(window.location.pathname == '/market-place/food/cart/'){
+            $('#subtotal').html(subtotal)
+            $('#tax').html(tax)
+            $('#total').html(subtotal)
+        }
+    }
+})
+
+

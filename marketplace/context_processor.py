@@ -28,4 +28,4 @@ def get_cart_ammounts(request):
             subtotal += (food_item.price * item.quantity)
         
         grand_total = subtotal + tax
-        return dict(subtotal=subtotal, tax=tax, grand_total=grand_total)
+    return dict(subtotal=subtotal, tax=tax, grand_total=grand_total)

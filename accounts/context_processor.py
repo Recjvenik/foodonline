@@ -1,13 +1,14 @@
 from vendor.models import Vendor
 from django.conf import settings
 
-def get_vendor(request):
+def get_vendor(request=None):
     context = dict()
     try:
-        vendor = Vendor.objects.get(user=request.user)
-        context['vendor'] = vendor
+        if request.user.is_authenticated:
+            vendor = Vendor.objects.get(user=request.user)
+            context['vendor'] = vendor
     except Exception as e:
-        print(e)
+        print('=======================',e)
     
     return context
 

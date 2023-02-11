@@ -17,7 +17,7 @@
                             <div class="listing-sorting-holder">
                                 <div class="row">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                        <h4>{{vemdor_count}} Restaurant's found</h4>
+                                        <h4>{{vendor_count}} Restaurant's found</h4>
                                     </div>
                                 </div>
                             </div>
@@ -50,6 +50,10 @@
 										        {{ vendor.user_profile.address }} 
                                             </small>
                                         </span>
+                                        {% endif %}
+                                        <br>
+                                        {% if search_location %}
+                                        <span><small><b>{{vendor.kms}} kms</b> away from {{search_location}}</small></span>
                                         {% endif %}
                                         <div class="list-option">
 

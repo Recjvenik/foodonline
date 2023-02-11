@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'vendor',
     'menu',
     'marketplace',
+    'django.contrib.gis',
 ]
 
 MIDDLEWARE = [
@@ -87,12 +88,22 @@ WSGI_APPLICATION = 'tiffinWala.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        # 'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'HOST': config('DB_HOST'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD')
-    }
+    },
+
+    # 'default': {
+    #     # 'ENGINE': 'django.db.backends.postgresql',
+    #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #     'NAME': config('DB_NAME'),
+    #     'HOST': config('DB_HOST'),
+    #     'USER': config('DB_USER'),
+    #     'PASSWORD': config('DB_PASSWORD')
+    # }
 }
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -162,3 +173,7 @@ DEFAULT_FROM_EMAIL = 'tiffinWala <himiitd960@gmail.com>'
 
 
 GOOGLE_API_KEY=config('GOOGLE_API_KEY')
+
+os.environ['PATH'] = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo') + ';' + os.environ['PATH']
+os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo/data/proj') + ';' + os.environ['PATH']
+GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo/gdal304.dll')

@@ -180,6 +180,68 @@ $(document).ready(function(){
             $('#total').html(subtotal)
         }
     }
+
+    // add opeming hour
+    $('.add_hours').on('click', function(e){
+        e.preventDefault()
+        var day = document.getElementById('id_day').value
+        var from_hour = document.getElementById('id_from_hour').value
+        var to_hour = document.getElementById('id_to_hour').value
+        var is_closed = document.getElementById('id_is_closed').checked
+        var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
+        var url = $(this).attr('data-url')
+        data = {
+            'day': day, 'from_hour': from_hour, 'to_hour': to_hour, 'is_closed': is_closed, 'csrfmiddlewaretoken': csrf_token,
+        }
+        if(is_closed){
+            is_closed = 'True',
+            condition = "day != ''"
+        }else{
+            is_closed = 'False',
+            condition = "day != '' && from_hour != '' && to_hour != ''"
+        }
+
+        if(eval(condition)){
+            $.ajax({
+                type: 'POST',
+                url : url,
+                data : data,
+                success: function(response){
+                    
+                    if(response.status == 'success'){
+                        url = url.replace('/add',  '/remove/' + response.id)
+                        if(response.is_closed == 'Closed'){
+                            html = `<tr id="hour-${response.id}"><td><b>${response.day}</b></td><td>Closed</td><td><a href=${url} data-url=${url}>Remove</a></td></tr>`
+                        }else{
+                            html = `<tr id="hour-${response.id}"><td><b>${response.day}</b></td><td>${response.from_hour} - ${response.to_hour } </td><td><a href=${url} class="remove_hours" data-url=${url}>Remove</a></td></tr>`
+                        }
+                        $(".opening_hours").append(html)
+                        document.getElementById('opening_hours').reset()
+                    }else{
+                        swal(response.message, '', 'error')
+                    }
+                }
+            })
+        }else{
+            swal('Please fill all the fields','', 'info')
+        }
+    })
+
+    // remove opeming hour
+    $(document).on('click', '.remove_hours', function(e){
+        e.preventDefault()  
+        var url = $(this).attr('data-url')
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response){
+                if(response.status == 'success'){
+                    document.getElementById("hour-"+response.id).remove()
+
+                }
+            }
+        })
+    })
 })
 
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Vendor
-from .forms import VendorForm
+from .models import Vendor, BusinessHour
+from .forms import VendorForm, BusinessHourForm
 from accounts.forms import UserProfileForm
 from accounts.models import UserProfile
 from django.contrib import messages
@@ -9,7 +9,7 @@ from accounts.views import check_role_vendor
 from menu.models import Category, FoodItem
 from menu.forms import CategoryForm, FoodItemForm
 from django.template.defaultfilters import slugify
-
+from django.http import JsonResponse, HttpResponse
 
 def get_vendor(request):
     vendor = Vendor.objects.get(user=request.user)
@@ -132,3 +132,58 @@ def delete_food_item(request, pk=None):
     food_item.delete()
     messages.success(request, 'Food item has been deleted successfully')
     return redirect('fooditems_by_category', food_item.category.id)
+
+
+
+def opening_hours(request):
+    context = {}
+    business_hour = BusinessHour.objects.filter(vendor=get_vendor(request))
+    business_hour_form = BusinessHourForm(request.POST or None, instance=None)
+    context['form'] = business_hour_form
+    context['business_hour'] = business_hour
+    return render(request,'vendor/opening_hours.html', context)
+
+def add_opening_hours(request):
+    if request.user.is_authenticated:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':
+            day = request.POST.get('day')
+            from_hour = request.POST.get('from_hour')
+            to_hour = request.POST.get('to_hour')
+            is_closed = request.POST.get('is_closed')
+            
+            if is_closed == 'true':
+                is_closed = True
+            else:
+                is_closed = False
+
+            try:
+                business_hour = BusinessHour.objects.create(vendor=get_vendor(request), day=day, from_hour=from_hour, to_hour=to_hour, is_closed=is_closed) 
+                if business_hour:
+                    day = BusinessHour.objects.get(id= business_hour.id)
+                    if day.is_closed:
+                        response = {'status': 'success', 'id': day.id, 'day': day.get_day_display(), 'is_closed': 'Closed'}
+                    else:
+                        response = {'status': 'success', 'id': day.id, 'day': day.get_day_display(), 'from_hour': day.from_hour, 'to_hour': day.to_hour}
+                return JsonResponse(response)
+            except Exception as e:
+                response = {'status': 'Failed', 'message': " ".join((from_hour,'-',to_hour,'already exists for this day'))}
+                return JsonResponse(response)
+    
+    response = {'status': 'login-required'}
+    return JsonResponse(response)
+
+
+def remove_opening_hours(request, pk=None):
+
+    if request.user.is_authenticated:
+        try:
+            hour = get_object_or_404(BusinessHour, id=pk)
+            hour.delete()
+            response = {'status': 'success', 'id': pk}
+            return JsonResponse(response)
+        except Exception as e:
+            response = {'status': 'Failed', 'message': e}
+            return JsonResponse(response)
+                    
+    response = {'status': 'login-required'}
+    return JsonResponse(response)

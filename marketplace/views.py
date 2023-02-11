@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from vendor.models import Vendor
+from vendor.models import Vendor, BusinessHour
 from menu.models import Category, FoodItem
 from .models import Cart
 from .context_processor import get_cart_count, get_cart_ammounts
@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import D 
 from django.contrib.gis.db.models.functions import Distance
-
+from datetime import date, datetime
 # Create your views here.
 
 def market_place(request):
@@ -32,7 +32,11 @@ def vendor_detail(request, vendor_slug=None):
             queryset = FoodItem.objects.filter(is_available=True)
         )
     )
+    business_hours = BusinessHour.objects.filter(vendor=vendor).order_by('day', '-from_hour')
     
+    today = date.today().isoweekday()
+    current_business_hour = BusinessHour.objects.filter(vendor=vendor, day=today)
+
     cart_item= None
     if request.user.is_authenticated:
         cart_item = Cart.objects.filter(user=request.user)
@@ -40,6 +44,8 @@ def vendor_detail(request, vendor_slug=None):
         context['cart_item'] = cart_item
     context['vendor'] = vendor
     context['categories'] = categories
+    context['business_hours'] = business_hours
+    context['current_business_hour'] = current_business_hour
     return render(request, 'marketplace/vendor_detail.html', context)
 
 

@@ -82,9 +82,10 @@ $(document).ready(function(){
                     // subtotal, tax and grand_total
                     applyCartAmount(
                         response.cart_amount['subtotal'], 
-                        response.cart_amount['tax'], 
+                        response.cart_amount['tax_dict'], 
                         response.cart_amount['grand_total']
-                        )
+                    )
+
                 }
             }
         })
@@ -113,7 +114,7 @@ $(document).ready(function(){
                     $('#qty-'+food_id).html(response.qty)
                     applyCartAmount(
                         response.cart_amount['subtotal'], 
-                        response.cart_amount['tax'], 
+                        response.cart_amount['tax_dict'], 
                         response.cart_amount['grand_total']
                         )
                     if(window.location.pathname == '/market-place/food/cart/'){
@@ -148,7 +149,7 @@ $(document).ready(function(){
                     $('#cart_counter').html(response.cart_counter['cart_count'])
                     applyCartAmount(
                         response.cart_amount['subtotal'], 
-                        response.cart_amount['tax'], 
+                        response.cart_amount['tax_dict'], 
                         response.cart_amount['grand_total']
                         )
                     removeCartItem(0, cart_id)
@@ -173,12 +174,18 @@ $(document).ready(function(){
     }
 
     // appy cart amount
-    function applyCartAmount(subtotal,tax,grand_total){
+    function applyCartAmount(subtotal, tax_dict, grand_total){
         if(window.location.pathname == '/market-place/food/cart/'){
             $('#subtotal').html(subtotal)
-            $('#tax').html(tax)
-            $('#total').html(subtotal)
-        }
+            $('#total').html(grand_total)
+            
+            for(tax_type in tax_dict){
+                for(percentage in tax_dict[tax_type]){
+                    tax_amount = tax_dict[tax_type][percentage]
+                    $(`#tax-${tax_type}`).html(tax_amount)
+                }
+            }
+        }   
     }
 
     // add opeming hour

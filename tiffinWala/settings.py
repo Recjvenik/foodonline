@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'marketplace',
     'django.contrib.gis',
     'customers',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -75,6 +76,7 @@ TEMPLATES = [
                 'accounts.context_processor.get_vendor',
                 'accounts.context_processor.get_user_profile',
                 'accounts.context_processor.get_google_api',
+                'accounts.context_processor.get_paypal_client_id',
                 'marketplace.context_processor.get_cart_count',
                 'marketplace.context_processor.get_cart_ammounts',
             ],
@@ -179,3 +181,7 @@ GOOGLE_API_KEY=config('GOOGLE_API_KEY')
 os.environ['PATH'] = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo') + ';' + os.environ['PATH']
 os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo/data/proj') + ';' + os.environ['PATH']
 GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, 'main/Lib/site-packages/osgeo/gdal304.dll')
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popup'

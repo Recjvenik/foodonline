@@ -79,7 +79,11 @@
                                                 </span>
                                             </li>
                                             <!-- PayPal checkout -->
-                                            <div id="paypal-button-container"></div>
+                                            {% if order.payment_method == 'PayPal' %}
+                                                <div id="paypal-button-container"></div>
+                                            {% elif order.payment_method == 'RazorPay' %}
+                                                <button class="btn btn-danger w-100">Pay with razorpay</button>
+                                            {% endif %}
                                         </ul>
                                     </div>
                                 </div>

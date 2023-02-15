@@ -11,6 +11,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.tokens import default_token_generator
 from vendor.models import Vendor
+from orders.models import Order
 
 def check_role_vendor(user):
     if user.role == 1:
@@ -149,7 +150,13 @@ def myAccount(request):
 @login_required(login_url='login')
 @user_passes_test(check_role_customer)
 def customer_dashboard(request):
-    context = dict()
+    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+    recent_orders = orders[:5]
+    context = {
+        'orders': orders,
+        'orders_count': orders.count(),
+        'recent_orders': recent_orders,
+    }
     return render(request, 'accounts/customer-dashboard.html', context)
 
 

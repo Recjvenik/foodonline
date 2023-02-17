@@ -1,7 +1,10 @@
 from django.db import models
 from accounts.models import User
 from menu.models import FoodItem
+from vendor.models import Vendor
+import simplejson as json
 
+request_object = ''
 
 class Payment(models.Model):
     PAYMENT_METHOD = (
@@ -29,6 +32,7 @@ class Order(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)
+    vendors = models.ManyToManyField(Vendor, blank=True)
     order_number = models.CharField(max_length=20)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -41,6 +45,7 @@ class Order(models.Model):
     pin_code = models.CharField(max_length=10)
     total = models.FloatField()
     tax_data = models.JSONField(blank=True, help_text = "Data format: {'tax_type':{'tax_percentage':'tax_amount'}}")
+    total_data = models.JSONField(blank=True, null=True)
     total_tax = models.FloatField()
     payment_method = models.CharField(max_length=25)
     status = models.CharField(max_length=15, choices=STATUS, default='New')
@@ -52,6 +57,39 @@ class Order(models.Model):
     @property
     def name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def order_placed_to(self):
+        return ", ".join([str(vendor) for vendor in self.vendors.all()])
+    
+    def get_total_by_vendor(self):
+        vendor = Vendor.objects.get(user=request_object.user)
+        grand_total = 0
+        subtotal = 0
+        tax = 0
+        tax_dict = {}
+        if self.total_data:
+            total_data = json.loads(self.total_data)
+            data = total_data.get(str(vendor.id))
+
+            
+            tax_dict = {}
+            for key, val in data.items():
+                subtotal += float(key)
+                val = val.replace("'",'"')
+                val = json.loads(val)
+                tax_dict.update(val)
+
+                for i in val:
+                    for j in val[i]:
+                        tax += float(val[i][j])
+        grand_total = float(subtotal)+ float(tax)
+        context = {
+            'grand_total': grand_total,
+            'tax': tax,
+            'subtotal': subtotal,
+            'tax_data': tax_dict,
+        }
+        return context
 
     def __str__(self):
         return self.order_number

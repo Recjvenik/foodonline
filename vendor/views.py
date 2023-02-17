@@ -10,6 +10,8 @@ from menu.models import Category, FoodItem
 from menu.forms import CategoryForm, FoodItemForm
 from django.template.defaultfilters import slugify
 from django.http import JsonResponse, HttpResponse
+from orders.models import Order, OrderedFood
+import simplejson as json
 
 def get_vendor(request):
     vendor = Vendor.objects.get(user=request.user)
@@ -187,3 +189,31 @@ def remove_opening_hours(request, pk=None):
                     
     response = {'status': 'login-required'}
     return JsonResponse(response)
+
+
+def order_detail(request, order_number=None):
+    try:
+        order = Order.objects.get(order_number=order_number)
+        ordered_food = OrderedFood.objects.filter(order=order, fooditem__vendor=get_vendor(request))
+        get_total_by_vendor = order.get_total_by_vendor()
+        context = {
+            'order': order,
+            'ordered_food': ordered_food,
+            'subtotal': get_total_by_vendor['subtotal'],
+            'tax_data': get_total_by_vendor['tax_data'],
+            'grand_total': get_total_by_vendor['grand_total'],
+        }
+        return render(request, 'vendor/order_detail.html', context)
+    except Exception as e:
+        print('order_details: ',e)
+        return redirect('vendor')
+
+
+def my_orders(request):
+    vendor = Vendor.objects.get(user=request.user)
+    orders = Order.objects.filter(vendors__in=[vendor.id], is_ordered=True).order_by('-created_at')
+    
+    context = {
+        'orders': orders
+    }
+    return render(request, 'vendor/my_orders.html', context)

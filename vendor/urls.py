@@ -3,7 +3,7 @@ from . import views
 from accounts import views as AccountViews
 
 urlpatterns = [
-    path('', AccountViews.vendorDashboard, name='vendor'),
+    path('', AccountViews.vendor_dashboard, name='vendor'),
     path('profile', views.vendor_profile, name='vendor_profile'),
     path('menu-builder', views.menu_builder, name='menu_builder'),
     path('menu-builder/category/<int:pk>', views.fooditems_by_category, name='fooditems_by_category'),
@@ -23,5 +23,8 @@ urlpatterns = [
     path('opening-hours/', views.opening_hours, name='opening_hours'),
     path('opening-hours/add', views.add_opening_hours, name='add_opening_hours'),
     path('opening-hours/remove/<int:pk>', views.remove_opening_hours, name='remove_opening_hours'),
+    
+    path('order-detail/<slug:order_number>', views.order_detail, name='vendor_order_detail'),
 
+    path('my-orders/', views.my_orders, name='vendor_my_orders'),
 ]

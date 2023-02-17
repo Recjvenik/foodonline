@@ -12,6 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.tokens import default_token_generator
 from vendor.models import Vendor
 from orders.models import Order
+from datetime import datetime
 
 def check_role_vendor(user):
     if user.role == 1:
@@ -162,11 +163,29 @@ def customer_dashboard(request):
 
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
-def vendorDashboard(request):
-    # context = dict()
-    # vendor = Vendor.objects.get(user=request.user)
-    # context['vendor'] = vendor
-    return render(request, 'accounts/vendor-dashboard.html')
+def vendor_dashboard(request):
+    vendor = Vendor.objects.get(user=request.user)
+    orders = Order.objects.filter(vendors__in=[vendor.id], is_ordered=True).order_by('-created_at')
+    recent_orders = orders[:5]
+    
+    current_mont_revenue = 0
+    current_month = datetime.now().month
+    current_month_orders = orders.filter(vendors__in=[vendor.id], created_at__month=current_month)
+    for order in current_month_orders:
+        current_mont_revenue += order.get_total_by_vendor()['grand_total']
+    
+    total_revenue = 0
+    for order in orders:
+        total_revenue += order.get_total_by_vendor()['grand_total']
+    
+    context = {
+        'vendor': vendor,
+        'recent_orders': recent_orders,
+        'orders_count': orders.count(),
+        'total_revenue': total_revenue,
+        'current_mont_revenue': current_mont_revenue
+    }
+    return render(request, 'accounts/vendor-dashboard.html', context)
 
 
 def forget_password(request):

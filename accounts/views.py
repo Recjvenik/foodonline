@@ -51,8 +51,11 @@ def registerUser(request):
             user.save()
             
             # send verification mail
-            send_verification_mail(request, user)
-            messages.success(request, 'Your account has been created successfully...')
+            mail_subject = 'Please activate your account'
+            email_template = 'accounts/emails/account_verification_email.html'
+            send_verification_mail(request, user, mail_subject, email_template)
+            
+            messages.success(request, 'Your account has been created successfully. Pleae activate your acount via email.')
             return redirect('register-user')
             
     context['form'] = form
@@ -88,7 +91,7 @@ def registerVendor(request):
             email_template = 'accounts/emails/account_verification_email.html'
             send_verification_mail(request, user, mail_subject, email_template)
             
-            messages.success(request, 'Your account has been created successfully...!!')
+            messages.success(request, 'Your account has been created successfully. Pleae activate your acount via email.')
             return redirect('register-vendor')
         else:
             print('invalid form')
